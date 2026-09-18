@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Meetingkosten">
+  <title>Meetingkosten</title>
+  <!-- Maskable: vollflaechiger Hintergrund, Motiv innerhalb der Safe Zone (Android beschneidet selbst) -->
+  <rect width="512" height="512" fill="#0f766e"/>
+  <g transform="translate(256 256) scale(0.86) translate(-256 -275)">
+    <rect x="208" y="104" width="96" height="40" rx="14" fill="#ffffff"/>
+  <circle cx="256" cy="298" r="148" fill="#ffffff"/>
+  <!-- Waehrungszeichen als Zifferblatt-Inhalt -->
+  <text x="258" y="300" text-anchor="middle" dominant-baseline="central"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="210" font-weight="700"
+        fill="#0f766e">&#8364;</text>
+  </g>
+</svg>

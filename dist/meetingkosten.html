@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<!-- Erzeugt von tools/build-standalone.mjs - nicht direkt bearbeiten.
+     Quellen: index.html, css/style.css, js/*.js -->
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meetingkosten</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%20width%3D%22512%22%20height%3D%22512%22%20role%3D%22img%22%20aria-label%3D%22Meetingkosten%22%3E%20%3Ctitle%3EMeetingkosten%3C%2Ftitle%3E%20%3C!--%20Reduzierte%20Variante%20fuer%20kleine%20Groessen%20(Favicon%2016-48%20px)%3A%20nur%20das%20Waehrungszeichen%2C%20da%20Zifferblatt%20und%20Krone%20bei%20dieser%20Kantenlaenge%20nicht%20mehr%20aufl%C3%B6sen.%20--%3E%20%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%2296%22%20fill%3D%22%230f766e%22%2F%3E%20%3Ctext%20x%3D%22258%22%20y%3D%22272%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%22400%22%20font-weight%3D%22700%22%20fill%3D%22%23ffffff%22%3E%26%238364%3B%3C%2Ftext%3E%20%3C%2Fsvg%3E%20" />
+  <meta name="description" content="Live-Kostenzähler für Meetings: Teilnehmer und Stundensatz eingeben, Start drücken - die Kosten laufen im Sekundentakt mit." />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0f766e" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#11161b" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Meetingkosten" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <style>
+/* Meetingkosten - Layout und Design
+   Farben als CSS-Variablen, damit ein Corporate-Design leicht eingesetzt
+   werden kann. Dunkelmodus folgt der Systemeinstellung. */
+
+:root {
+  color-scheme: light dark;
+
+  --bg: #f4f6f8;
+  --bg-panel: #ffffff;
+  --bg-subtle: #eef1f4;
+  --border: #d8dee5;
+  --text: #16202a;
+  --text-muted: #5a6b7b;
+  --accent: #0f766e;
+  --accent-strong: #0b5d56;
+  --accent-contrast: #ffffff;
+  --danger: #b4232a;
+  --running: #0f766e;
+  --paused: #b26a00;
+  --shadow: 0 1px 2px rgba(16, 32, 42, 0.06), 0 8px 24px rgba(16, 32, 42, 0.06);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+/* Dunkelmodus: folgt der Systemeinstellung; ein optionales data-theme am
+   <html>-Element kann die Entscheidung überschreiben (Vorbereitung für einen
+   manuellen Umschalter). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161b;
+    --bg-panel: #1a2128;
+    --bg-subtle: #222b34;
+    --border: #2f3a45;
+    --text: #e8edf2;
+    --text-muted: #9fb0bf;
+    --accent: #2dd4bf;
+    --accent-strong: #14b8a6;
+    --accent-contrast: #06231f;
+    --danger: #f87171;
+    --running: #2dd4bf;
+    --paused: #f5b942;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.28);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #11161b;
+  --bg-panel: #1a2128;
+  --bg-subtle: #222b34;
+  --border: #2f3a45;
+  --text: #e8edf2;
+  --text-muted: #9fb0bf;
+  --accent: #2dd4bf;
+  --accent-strong: #14b8a6;
+  --accent-contrast: #06231f;
+  --danger: #f87171;
+  --running: #2dd4bf;
+  --paused: #f5b942;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 0 2rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2 { line-height: 1.2; margin: 0; }
+
+/* --- Kopfbereich --------------------------------------------------------- */
+.app-header {
+  padding: 1.5rem 1rem 1rem;
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.app-header__mark {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex: none;
+}
+
+.app-header h1 { font-size: 1.5rem; letter-spacing: -0.01em; }
+
+.app-header__tagline {
+  margin: 0.15rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* --- Layout -------------------------------------------------------------- */
+.layout {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 860px) {
+  .layout {
+    grid-template-columns: 1.15fr 1fr;
+    align-items: start;
+  }
+  .layout > .panel:nth-child(3) { grid-column: 1 / -1; }
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+}
+
+.panel__title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.panel--live { text-align: center; }
+
+/* --- Live-Anzeige -------------------------------------------------------- */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.5rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.status::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status[data-state="running"] { color: var(--running); }
+.status[data-state="running"]::before { animation: pulse 1s steps(2, end) infinite; }
+.status[data-state="paused"] { color: var(--paused); }
+
+@keyframes pulse { 50% { opacity: 0.25; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .status[data-state="running"]::before { animation: none; }
+}
+
+.cost {
+  margin: 0.25rem 0 0;
+  font-size: clamp(2.75rem, 12vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+.clock {
+  margin: 0.25rem 0 1.1rem;
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.controls {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.controls--wrap { flex-wrap: wrap; justify-content: flex-start; }
+
+.hint {
+  margin: 0.7rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  min-height: 1.2em;
+}
+
+kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0 0.3rem;
+  background: var(--bg-subtle);
+}
+
+/* --- Kennzahlen ---------------------------------------------------------- */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 1.25rem 0 0;
+}
+
+@media (min-width: 560px) {
+  .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.kpi {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.5rem;
+}
+
+.kpi dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.kpi dd {
+  margin: 0.2rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Formular ------------------------------------------------------------ */
+.form { display: grid; gap: 1rem; }
+
+.field { display: grid; gap: 0.35rem; }
+
+.field label { font-size: 0.9rem; font-weight: 600; }
+
+.field__hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+input:focus-visible,
+.btn:focus-visible,
+.chip:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.stepper {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr 2.75rem;
+  gap: 0.4rem;
+  align-items: stretch;
+}
+
+.stepper input { text-align: center; }
+
+/* --- Schaltflächen ------------------------------------------------------ */
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+}
+
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  min-width: 8.5rem;
+  font-size: 1.05rem;
+}
+
+.btn--primary:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); }
+
+.btn--ghost { background: transparent; }
+
+.btn--icon {
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.btn--small {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.15rem; }
+
+.chip {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.chip:hover { border-color: var(--accent); color: var(--text); }
+
+/* --- Verlauf ------------------------------------------------------------- */
+.log { margin-top: 1rem; }
+
+.log summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.3rem 0;
+}
+
+.table-wrap { overflow-x: auto; margin-top: 0.6rem; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.table__empty td { color: var(--text-muted); font-style: italic; }
+
+/* --- Fuß ---------------------------------------------------------------- */
+.app-footer {
+  max-width: 1080px;
+  margin: 1.25rem auto 0;
+  padding: 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.app-footer p { margin: 0; }
+
+.install-help {
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-panel);
+}
+
+.install-help summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.install-help ul {
+  margin: 0.6rem 0 0.4rem;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.install-help strong { color: var(--text); }
+
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__mark" aria-hidden="true">&euro;</span>
+      <div>
+        <h1>Meetingkosten</h1>
+        <p class="app-header__tagline">Live-Kostenzähler für Besprechungen &ndash; Stoppuhr mit Preisschild</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Live-Anzeige -->
+    <section class="panel panel--live" aria-labelledby="live-heading">
+      <h2 id="live-heading" class="panel__title">Live-Kosten</h2>
+
+      <p class="status" id="status" data-state="idle">Bereit</p>
+
+      <p class="cost" id="cost" role="timer" aria-live="off" aria-label="Aufgelaufene Kosten">0,00&nbsp;&euro;</p>
+      <p class="clock" id="clock">00:00:00</p>
+
+      <div class="controls">
+        <button type="button" id="btnToggle" class="btn btn--primary">Start</button>
+        <button type="button" id="btnReset" class="btn btn--ghost">Zurücksetzen</button>
+      </div>
+      <p class="hint">Leertaste startet und pausiert, <kbd>R</kbd> setzt zurück.</p>
+
+      <dl class="kpis">
+        <div class="kpi">
+          <dt>Kostenrate</dt>
+          <dd id="ratePerHour">0,00&nbsp;&euro;/h</dd>
+        </div>
+        <div class="kpi">
+          <dt>je Minute</dt>
+          <dd id="ratePerMinute">0,00&nbsp;&euro;</dd>
+        </div>
+        <div class="kpi">
+          <dt>je Teilnehmer</dt>
+          <dd id="costPerParticipant">0,00&nbsp;&euro;</dd>
+        </div>
+        <div class="kpi">
+          <dt title="Personenstunden">Aufwand (Ph)</dt>
+          <dd id="personHours">0,00</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- Parameter -->
+    <section class="panel" aria-labelledby="params-heading">
+      <h2 id="params-heading" class="panel__title">Parameter</h2>
+      <form class="form" id="paramsForm" autocomplete="off">
+        <div class="field">
+          <label for="title">Meeting (optional)</label>
+          <input type="text" id="title" name="title" maxlength="80" placeholder="z. B. CRB Freitag" />
+        </div>
+
+        <div class="field">
+          <label for="participants">Anzahl Mitarbeiter</label>
+          <div class="stepper">
+            <button type="button" class="btn btn--icon" data-step="participants" data-delta="-1" aria-label="Ein Teilnehmer weniger">&minus;</button>
+            <input type="number" id="participants" name="participants" inputmode="numeric" min="1" max="1000" step="1" value="5" />
+            <button type="button" class="btn btn--icon" data-step="participants" data-delta="1" aria-label="Ein Teilnehmer mehr">+</button>
+          </div>
+          <p class="field__hint">Kann auch während des Meetings geändert werden &ndash; bereits aufgelaufene Kosten bleiben erhalten.</p>
+        </div>
+
+        <div class="field">
+          <label for="hourlyRate">Stundensatz je Mitarbeiter (&euro;/h)</label>
+          <input type="number" id="hourlyRate" name="hourlyRate" inputmode="decimal" min="0" max="100000" step="5" value="80" />
+          <div class="chips" role="group" aria-label="Schnellwahl Stundensatz">
+            <button type="button" class="chip" data-preset="hourlyRate" data-value="50">50</button>
+            <button type="button" class="chip" data-preset="hourlyRate" data-value="65">65</button>
+            <button type="button" class="chip" data-preset="hourlyRate" data-value="80">80</button>
+            <button type="button" class="chip" data-preset="hourlyRate" data-value="100">100</button>
+            <button type="button" class="chip" data-preset="hourlyRate" data-value="120">120</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="overhead">Overhead-Faktor</label>
+          <input type="number" id="overhead" name="overhead" inputmode="decimal" min="1" max="5" step="0.05" value="1" />
+          <p class="field__hint">1,00 = reiner Stundensatz. Für Vollkosten (Lohnnebenkosten, Gemeinkosten, Arbeitsplatz) z.&nbsp;B. 1,30 bis 2,00.</p>
+        </div>
+      </form>
+    </section>
+
+    <!-- Verlauf und Export -->
+    <section class="panel" aria-labelledby="log-heading">
+      <h2 id="log-heading" class="panel__title">Verlauf &amp; Export</h2>
+      <div class="controls controls--wrap">
+        <button type="button" id="btnCopy" class="btn">Zusammenfassung kopieren</button>
+        <button type="button" id="btnCsv" class="btn">Verlauf als CSV</button>
+      </div>
+      <p class="hint" id="exportHint" role="status" aria-live="polite"></p>
+
+      <details class="log" id="logDetails">
+        <summary>Segmente (<span id="segmentCount">0</span>)</summary>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Von</th>
+                <th scope="col">Dauer</th>
+                <th scope="col">TN</th>
+                <th scope="col">&euro;/h</th>
+                <th scope="col">Kosten</th>
+              </tr>
+            </thead>
+            <tbody id="segmentRows">
+              <tr class="table__empty"><td colspan="6">Noch keine abgeschlossenen Segmente.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="field__hint">Ein neues Segment entsteht bei jeder Pause und bei jeder Parameteränderung. So bleibt die Summe auch bei wechselnder Teilnehmerzahl korrekt und nachvollziehbar.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Berechnung: Teilnehmer &times; Stundensatz &times; Overhead-Faktor &divide; 3600 = Kosten pro Sekunde. Alle Daten bleiben im Browser.</p>
+  </footer>
+  <script>
+(() => {
+'use strict';
+
+  /* ----- js/config.js ----- */
+/**
+ * Zentrale Konfiguration der App.
+ * Alle Vorgaben, Grenzen und Formatierungs-Einstellungen an einer Stelle,
+ * damit Anpassungen (z. B. andere Währung, anderer Takt) ohne Code-Suche möglich sind.
+ */
+
+const SECONDS_PER_HOUR = 3600;
+
+const CONFIG = Object.freeze({
+  /** Anzeige-Takt in ms. 1000 = Sekundentakt (wie eine Stoppuhr). */
+  tickMs: 1000,
+
+  /** Intervall für das automatische Sichern des Zustands (ms). */
+  autosaveMs: 5000,
+
+  locale: 'de-DE',
+  currency: 'EUR',
+
+  /** Schlüssel im localStorage; Version im Namen erlaubt spätere Migrationen. */
+  storageKey: 'meetingkosten.state.v1',
+
+  defaults: Object.freeze({
+    title: '',
+    participants: 5,
+    hourlyRate: 80,
+    overhead: 1
+  }),
+
+  limits: Object.freeze({
+    participants: { min: 1, max: 1000, step: 1 },
+    hourlyRate: { min: 0, max: 100000, step: 5 },
+    overhead: { min: 1, max: 5, step: 0.05 }
+  })
+});
+
+  /* ----- js/format.js ----- */
+/**
+ * Formatierung für Anzeige und Export (Locale-abhaengig, an einer Stelle gebündelt).
+ */
+
+const currencyFormatter = new Intl.NumberFormat(CONFIG.locale, {
+  style: 'currency',
+  currency: CONFIG.currency,
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
+const decimalFormatter = new Intl.NumberFormat(CONFIG.locale, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
+const dateTimeFormatter = new Intl.DateTimeFormat(CONFIG.locale, {
+  dateStyle: 'short',
+  timeStyle: 'medium'
+});
+
+/** Betrag als Währung, z. B. "1.234,56 EUR". */
+function formatCurrency(value) {
+  return currencyFormatter.format(Number.isFinite(value) ? value : 0);
+}
+
+/** Dezimalzahl mit zwei Nachkommastellen. */
+function formatDecimal(value) {
+  return decimalFormatter.format(Number.isFinite(value) ? value : 0);
+}
+
+/** Dauer in ms als HH:MM:SS (Stunden wachsen über 24 h hinaus). */
+function formatDuration(ms) {
+  const totalSeconds = Math.max(0, Math.floor((Number.isFinite(ms) ? ms : 0) / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return [hours, minutes, seconds].map((part) => String(part).padStart(2, '0')).join(':');
+}
+
+/** Zeitstempel (epoch ms) als lokale Datums-/Zeitangabe. */
+function formatDateTime(timestamp) {
+  if (!Number.isFinite(timestamp)) return '-';
+  return dateTimeFormatter.format(new Date(timestamp));
+}
+
+/** ISO-Zeitstempel für maschinenlesbare Exporte. */
+function formatIso(timestamp) {
+  if (!Number.isFinite(timestamp)) return '';
+  return new Date(timestamp).toISOString();
+}
+
+  /* ----- js/costEngine.js ----- */
+/**
+ * Kostenmodell und Zeitmessung ("Stoppuhr mit Preisschild").
+ *
+ * Kostenmodell:
+ *   Rate [EUR/s] = Teilnehmer * Stundensatz [EUR/h] * Overhead-Faktor / 3600
+ *
+ * Wichtig: Parameter können sich während eines laufenden Meetings ändern
+ * (jemand kommt dazu, jemand geht). Deshalb wird nicht rückwirkend mit der
+ * aktuellen Rate gerechnet, sondern segmentweise akkumuliert: bei jeder
+ * Parameteränderung wird das laufende Segment abgeschlossen und verbucht.
+ * Das ergibt korrekte Summen und einen nachvollziehbaren Verlauf (Audit-Trail).
+ *
+ * Zeitbasis ist Date.now() (epoch ms), damit ein Reload der Seite ein laufendes
+ * Meeting fortsetzen kann. Negative Deltas (z. B. Zeitumstellung, NTP-Sprung)
+ * werden auf 0 begrenzt.
+ */
+
+const SNAPSHOT_VERSION = 1;
+
+/** Kostenrate pro Sekunde aus den Parametern. */
+function ratePerSecond({ participants, hourlyRate, overhead }) {
+  const p = Number(participants) || 0;
+  const rate = Number(hourlyRate) || 0;
+  const factor = Number(overhead) || 0;
+  return (p * rate * factor) / SECONDS_PER_HOUR;
+}
+
+/** Kostenrate pro Stunde (Anzeige "Burn Rate"). */
+function ratePerHour(params) {
+  return ratePerSecond(params) * SECONDS_PER_HOUR;
+}
+
+function sanitizeParams(params) {
+  return {
+    participants: Number(params.participants) || 0,
+    hourlyRate: Number(params.hourlyRate) || 0,
+    overhead: Number(params.overhead) || 0
+  };
+}
+
+/**
+ * Erzeugt eine Engine-Instanz.
+ * Die Engine ist frei von DOM-Zugriffen und damit einzeln testbar.
+ */
+function createCostEngine(initialParams = CONFIG.defaults) {
+  let params = sanitizeParams(initialParams);
+  let running = false;
+  /** Zeitpunkt des ersten Starts (nur für Zusammenfassung). */
+  let startedAt = null;
+  /** Beginn des aktuell laufenden Segments. */
+  let segmentStart = null;
+  let accruedMs = 0;
+  let accruedCost = 0;
+  let accruedPersonMs = 0;
+  /** Abgeschlossene Segmente als Audit-Trail. */
+  let segments = [];
+
+  function liveMs(now) {
+    if (!running || segmentStart === null) return 0;
+    return Math.max(0, now - segmentStart);
+  }
+
+  /** Laufendes Segment abschließen und verbuchen. */
+  function closeSegment(now, reason) {
+    if (!running || segmentStart === null) return;
+    const durationMs = liveMs(now);
+    const cost = (durationMs / 1000) * ratePerSecond(params);
+    if (durationMs > 0) {
+      segments.push({
+        from: segmentStart,
+        to: now,
+        durationMs,
+        participants: params.participants,
+        hourlyRate: params.hourlyRate,
+        overhead: params.overhead,
+        cost,
+        reason
+      });
+      accruedMs += durationMs;
+      accruedCost += cost;
+      accruedPersonMs += durationMs * params.participants;
+    }
+    segmentStart = now;
+  }
+
+  return {
+    /** Momentaufnahme für die Anzeige - verändert den Zustand nicht. */
+    sample(now = Date.now()) {
+      const live = liveMs(now);
+      const perSecond = ratePerSecond(params);
+      const elapsedMs = accruedMs + live;
+      const cost = accruedCost + (live / 1000) * perSecond;
+      const personMs = accruedPersonMs + live * params.participants;
+      return {
+        running,
+        params: { ...params },
+        elapsedMs,
+        cost,
+        ratePerSecond: perSecond,
+        ratePerHour: perSecond * SECONDS_PER_HOUR,
+        ratePerMinute: perSecond * 60,
+        costPerParticipant: params.participants > 0 ? cost / params.participants : 0,
+        personHours: personMs / 3_600_000,
+        startedAt,
+        segments: segments.slice()
+      };
+    },
+
+    start(now = Date.now()) {
+      if (running) return false;
+      running = true;
+      segmentStart = now;
+      if (startedAt === null) startedAt = now;
+      return true;
+    },
+
+    pause(now = Date.now()) {
+      if (!running) return false;
+      closeSegment(now, 'pause');
+      running = false;
+      segmentStart = null;
+      return true;
+    },
+
+    /** Start/Pause umschalten; liefert den neuen Laufzustand zurück. */
+    toggle(now = Date.now()) {
+      if (running) {
+        this.pause(now);
+      } else {
+        this.start(now);
+      }
+      return running;
+    },
+
+    reset() {
+      running = false;
+      startedAt = null;
+      segmentStart = null;
+      accruedMs = 0;
+      accruedCost = 0;
+      accruedPersonMs = 0;
+      segments = [];
+    },
+
+    /**
+     * Parameter ändern. Läuft die Uhr, wird das bisherige Segment
+     * mit der alten Rate verbucht, bevor die neue Rate greift.
+     */
+    setParams(patch, now = Date.now()) {
+      const next = sanitizeParams({ ...params, ...patch });
+      const changed =
+        next.participants !== params.participants ||
+        next.hourlyRate !== params.hourlyRate ||
+        next.overhead !== params.overhead;
+      if (!changed) return false;
+      closeSegment(now, 'parameter-change');
+      params = next;
+      return true;
+    },
+
+    isRunning() {
+      return running;
+    },
+
+    /** Serialisierbarer Zustand für localStorage. */
+    toJSON() {
+      return {
+        version: SNAPSHOT_VERSION,
+        params: { ...params },
+        running,
+        startedAt,
+        segmentStart,
+        accruedMs,
+        accruedCost,
+        accruedPersonMs,
+        segments: segments.slice()
+      };
+    },
+
+    /** Zustand wiederherstellen (z. B. nach Reload). */
+    restore(snapshot) {
+      if (!snapshot || snapshot.version !== SNAPSHOT_VERSION) return false;
+      params = sanitizeParams(snapshot.params || CONFIG.defaults);
+      running = Boolean(snapshot.running);
+      startedAt = Number.isFinite(snapshot.startedAt) ? snapshot.startedAt : null;
+      segmentStart = running && Number.isFinite(snapshot.segmentStart) ? snapshot.segmentStart : null;
+      if (running && segmentStart === null) running = false;
+      accruedMs = Number(snapshot.accruedMs) || 0;
+      accruedCost = Number(snapshot.accruedCost) || 0;
+      accruedPersonMs = Number(snapshot.accruedPersonMs) || 0;
+      segments = Array.isArray(snapshot.segments) ? snapshot.segments.slice() : [];
+      return true;
+    }
+  };
+}
+
+  /* ----- js/ticker.js ----- */
+/**
+ * Drift-freier Takt-Geber für die Anzeige.
+ *
+ * setInterval driftet und wird in Hintergrund-Tabs gedrosselt. Deshalb wird
+ * jeder Tick per setTimeout auf den nächsten Sollzeitpunkt geplant. Die
+ * Kostenberechnung selbst haengt ohnehin an Zeitstempeln (siehe costEngine),
+ * der Ticker beeinflusst also nur die Aktualisierungsfrequenz der Darstellung.
+ */
+function createTicker(onTick, intervalMs) {
+  let handle = null;
+  let nextAt = 0;
+
+  function loop() {
+    onTick();
+    if (handle === null) return; // während onTick gestoppt
+    nextAt += intervalMs;
+    const delay = Math.max(0, nextAt - Date.now());
+    handle = setTimeout(loop, delay);
+  }
+
+  return {
+    start() {
+      if (handle !== null) return;
+      nextAt = Date.now() + intervalMs;
+      handle = setTimeout(loop, intervalMs);
+    },
+    stop() {
+      if (handle === null) return;
+      clearTimeout(handle);
+      handle = null;
+    },
+    isRunning() {
+      return handle !== null;
+    }
+  };
+}
+
+  /* ----- js/storage.js ----- */
+/**
+ * Persistenz im localStorage. Bewusst defensiv: in privaten Fenstern oder bei
+ * blockierten Cookies kann der Zugriff werfen - die App muss trotzdem laufen.
+ */
+
+function loadState() {
+  try {
+    const raw = window.localStorage.getItem(CONFIG.storageKey);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn('Meetingkosten: Zustand konnte nicht geladen werden.', error);
+    return null;
+  }
+}
+
+function saveState(state) {
+  try {
+    window.localStorage.setItem(CONFIG.storageKey, JSON.stringify(state));
+    return true;
+  } catch (error) {
+    console.warn('Meetingkosten: Zustand konnte nicht gesichert werden.', error);
+    return false;
+  }
+}
+
+function clearState() {
+  try {
+    window.localStorage.removeItem(CONFIG.storageKey);
+    return true;
+  } catch (error) {
+    console.warn('Meetingkosten: Zustand konnte nicht gelöscht werden.', error);
+    return false;
+  }
+}
+
+  /* ----- js/exporter.js ----- */
+/**
+ * Export der Ergebnisse: Kurzfassung als Text (Clipboard) und Verlauf als CSV.
+ * Alles rein lokal - es werden keine Daten an Server übertragen.
+ */
+
+/** Managementtaugliche Kurzfassung, z. B. für Protokoll oder Chat. */
+function buildSummaryText(sample, title) {
+  const rows = [
+    ['Dauer', formatDuration(sample.elapsedMs)],
+    ['Teilnehmer', String(sample.params.participants)],
+    ['Stundensatz', `${formatCurrency(sample.params.hourlyRate)} / Person / h`],
+    ['Overhead-Faktor', formatDecimal(sample.params.overhead)],
+    ['Kostenrate', `${formatCurrency(sample.ratePerHour)} / h`],
+    ['Aufwand', `${formatDecimal(sample.personHours)} Personenstunden`],
+    ['Kosten gesamt', formatCurrency(sample.cost)],
+    ['Kosten je Teilnehmer', formatCurrency(sample.costPerParticipant)]
+  ];
+  if (sample.startedAt) {
+    rows.push(['Start', formatDateTime(sample.startedAt)]);
+  }
+  const width = Math.max(...rows.map(([label]) => label.length)) + 2;
+  return [
+    `Meetingkosten${title ? `: ${title}` : ''}`,
+    ...rows.map(([label, value]) => `${`${label}:`.padEnd(width)}${value}`)
+  ].join('\n');
+}
+
+const CSV_SEPARATOR = ';';
+
+function csvCell(value) {
+  const text = String(value ?? '');
+  return /[";\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+/**
+ * Verlauf als CSV (Semikolon-getrennt, Excel-freundlich in de-DE).
+ * Eine Zeile pro Segment plus Summenzeile.
+ */
+function buildSegmentsCsv(sample, title) {
+  const header = [
+    'Segment',
+    'Von (ISO)',
+    'Bis (ISO)',
+    'Dauer (s)',
+    'Teilnehmer',
+    'Stundensatz',
+    'Overhead',
+    'Kosten',
+    'Ursache'
+  ];
+  const rows = sample.segments.map((segment, index) => [
+    index + 1,
+    formatIso(segment.from),
+    formatIso(segment.to),
+    Math.round(segment.durationMs / 1000),
+    segment.participants,
+    segment.hourlyRate,
+    segment.overhead,
+    segment.cost.toFixed(4),
+    segment.reason
+  ]);
+
+  const openDelta = sample.elapsedMs - sample.segments.reduce((sum, s) => sum + s.durationMs, 0);
+  if (openDelta > 0) {
+    rows.push([
+      rows.length + 1,
+      '',
+      '',
+      Math.round(openDelta / 1000),
+      sample.params.participants,
+      sample.params.hourlyRate,
+      sample.params.overhead,
+      (sample.cost - sample.segments.reduce((sum, s) => sum + s.cost, 0)).toFixed(4),
+      'laufend'
+    ]);
+  }
+
+  rows.push([
+    'Summe',
+    '',
+    '',
+    Math.round(sample.elapsedMs / 1000),
+    '',
+    '',
+    '',
+    sample.cost.toFixed(4),
+    title || ''
+  ]);
+
+  return [header, ...rows].map((row) => row.map(csvCell).join(CSV_SEPARATOR)).join('\r\n');
+}
+
+/** Dateiname ohne Sonderzeichen, mit Zeitstempel. */
+function buildFileName(title, extension) {
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+  const slug = (title || 'meeting')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40) || 'meeting';
+  return `meetingkosten_${slug}_${stamp}.${extension}`;
+}
+
+/** Datei im Browser herunterladen (Blob + temporärer Link). */
+function downloadFile(fileName, content, mimeType = 'text/plain;charset=utf-8') {
+  const blob = new Blob(['﻿', content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** In die Zwischenablage kopieren, mit Fallback für aeltere/unsichere Kontexte. */
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (error) {
+    console.warn('Meetingkosten: Clipboard-API nicht verfügbar.', error);
+  }
+  try {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', 'readonly');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    const ok = document.execCommand('copy');
+    textarea.remove();
+    return ok;
+  } catch (error) {
+    console.warn('Meetingkosten: Kopieren fehlgeschlagen.', error);
+    return false;
+  }
+}
+
+  /* ----- js/pwa.js ----- */
+/**
+ * Installation als App und Offline-Betrieb.
+ *
+ * Beides ist optional: ohne Service Worker (z. B. bei Aufruf über file://)
+ * läuft die App unverändert weiter, nur ohne Offline-Cache und ohne
+ * Installationsangebot des Browsers.
+ */
+
+/** Service Worker registrieren, wenn die Umgebung es zulässt. */
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  // file:// unterstützt keine Service Worker, eingebettete Vorschauen sollen keinen registrieren.
+  if (!location.protocol.startsWith('http')) return;
+  if (window.top !== window.self) return;
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((error) => {
+      console.warn('Meetingkosten: Offline-Betrieb nicht verfügbar.', error);
+    });
+  });
+}
+
+/**
+ * Installationsangebot des Browsers an eine Schaltfläche binden.
+ * Chrome, Edge und Android liefern dafür das Ereignis `beforeinstallprompt`;
+ * iOS/iPadOS kennt es nicht, dort führt der Weg über "Teilen > Zum Home-Bildschirm".
+ *
+ * @param {HTMLElement} button  Schaltfläche, die nur bei Installierbarkeit sichtbar wird
+ * @param {(message: string) => void} [notify]  optionale Rückmeldung an die Oberfläche
+ */
+function setupInstallPrompt(button, notify = () => {}) {
+  if (!button) return;
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    button.hidden = false;
+  });
+
+  button.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    button.disabled = true;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    button.disabled = false;
+    if (outcome === 'accepted') {
+      button.hidden = true;
+      notify('Meetingkosten wurde installiert.');
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    button.hidden = true;
+  });
+
+  // Bereits installiert und im eigenen Fenster gestartet: kein Angebot nötig.
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    button.hidden = true;
+  }
+}
+
+  /* ----- js/ui.js ----- */
+/**
+ * UI-Schicht: bindet DOM-Elemente, liest Eingaben, rendert die Anzeige.
+ * Enthaelt keine Kostenlogik - die liegt vollständig in costEngine.js.
+ */
+
+const STATUS_TEXT = {
+  idle: 'Bereit',
+  running: 'Läuft',
+  paused: 'Pausiert'
+};
+
+function byId(id) {
+  const element = document.getElementById(id);
+  if (!element) throw new Error(`Meetingkosten: Element #${id} fehlt im HTML.`);
+  return element;
+}
+
+function clamp(value, { min, max }) {
+  return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * @param {object} handlers
+ * @param {() => void} handlers.onToggle
+ * @param {() => void} handlers.onReset
+ * @param {(patch: object) => void} handlers.onParamsChange  Teilnehmer/Satz/Overhead
+ * @param {(title: string) => void} handlers.onTitleChange
+ * @param {() => void} handlers.onCopy
+ * @param {() => void} handlers.onCsv
+ */
+function createUi(handlers) {
+  const el = {
+    status: byId('status'),
+    cost: byId('cost'),
+    clock: byId('clock'),
+    ratePerHour: byId('ratePerHour'),
+    ratePerMinute: byId('ratePerMinute'),
+    costPerParticipant: byId('costPerParticipant'),
+    personHours: byId('personHours'),
+    btnToggle: byId('btnToggle'),
+    btnReset: byId('btnReset'),
+    btnCopy: byId('btnCopy'),
+    btnCsv: byId('btnCsv'),
+    exportHint: byId('exportHint'),
+    form: byId('paramsForm'),
+    title: byId('title'),
+    participants: byId('participants'),
+    hourlyRate: byId('hourlyRate'),
+    overhead: byId('overhead'),
+    segmentRows: byId('segmentRows'),
+    segmentCount: byId('segmentCount')
+  };
+
+  const numericFields = [
+    { input: el.participants, key: 'participants', limits: CONFIG.limits.participants },
+    { input: el.hourlyRate, key: 'hourlyRate', limits: CONFIG.limits.hourlyRate },
+    { input: el.overhead, key: 'overhead', limits: CONFIG.limits.overhead }
+  ];
+
+  let renderedSegments = -1;
+  let hintTimer = null;
+
+  // --- Eingaben -------------------------------------------------------------
+  numericFields.forEach(({ input, key, limits }) => {
+    // Waehrend des Tippens: nur übernehmen, wenn der Wert plausibel ist.
+    input.addEventListener('input', () => {
+      const value = Number.parseFloat(input.value.replace(',', '.'));
+      if (!Number.isFinite(value)) return;
+      handlers.onParamsChange({ [key]: clamp(value, limits) });
+    });
+    // Nach dem Verlassen des Feldes: Wert normalisieren und zurückschreiben.
+    input.addEventListener('change', () => {
+      const parsed = Number.parseFloat(input.value.replace(',', '.'));
+      const value = clamp(Number.isFinite(parsed) ? parsed : CONFIG.defaults[key], limits);
+      input.value = String(value);
+      handlers.onParamsChange({ [key]: value });
+    });
+  });
+
+  el.title.addEventListener('input', () => handlers.onTitleChange(el.title.value));
+
+  // Plus/Minus-Schaltflächen und Schnellwahl-Chips
+  el.form.addEventListener('click', (event) => {
+    const stepButton = event.target.closest('[data-step]');
+    if (stepButton) {
+      const key = stepButton.dataset.step;
+      const field = numericFields.find((entry) => entry.key === key);
+      if (!field) return;
+      const current = Number.parseFloat(field.input.value.replace(',', '.')) || 0;
+      const value = clamp(current + Number(stepButton.dataset.delta), field.limits);
+      field.input.value = String(value);
+      handlers.onParamsChange({ [key]: value });
+      return;
+    }
+
+    const presetButton = event.target.closest('[data-preset]');
+    if (presetButton) {
+      const key = presetButton.dataset.preset;
+      const field = numericFields.find((entry) => entry.key === key);
+      if (!field) return;
+      const value = clamp(Number(presetButton.dataset.value), field.limits);
+      field.input.value = String(value);
+      handlers.onParamsChange({ [key]: value });
+    }
+  });
+
+  // --- Steuerung ------------------------------------------------------------
+  el.btnToggle.addEventListener('click', () => handlers.onToggle());
+  el.btnReset.addEventListener('click', () => handlers.onReset());
+  el.btnCopy.addEventListener('click', () => handlers.onCopy());
+  el.btnCsv.addEventListener('click', () => handlers.onCsv());
+
+  // Tastatur: Leertaste = Start/Pause, R = Zurücksetzen (nicht in Eingabefeldern).
+  document.addEventListener('keydown', (event) => {
+    const target = event.target;
+    const isFormField = target instanceof HTMLElement &&
+      (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+    if (isFormField || event.metaKey || event.ctrlKey || event.altKey) return;
+
+    if (event.code === 'Space') {
+      event.preventDefault();
+      handlers.onToggle();
+    } else if (event.key === 'r' || event.key === 'R') {
+      event.preventDefault();
+      handlers.onReset();
+    }
+  });
+
+  // --- Ausgabe --------------------------------------------------------------
+  function renderSegments(sample) {
+    if (sample.segments.length === renderedSegments) return;
+    renderedSegments = sample.segments.length;
+    el.segmentCount.textContent = String(sample.segments.length);
+
+    if (sample.segments.length === 0) {
+      el.segmentRows.innerHTML =
+        '<tr class="table__empty"><td colspan="6">Noch keine abgeschlossenen Segmente.</td></tr>';
+      return;
+    }
+
+    const rows = sample.segments.map((segment, index) => {
+      const cells = [
+        String(index + 1),
+        formatDateTime(segment.from),
+        formatDuration(segment.durationMs),
+        String(segment.participants),
+        formatDecimal(segment.hourlyRate * segment.overhead),
+        formatCurrency(segment.cost)
+      ];
+      return `<tr>${cells.map((cell) => `<td>${cell}</td>`).join('')}</tr>`;
+    });
+    el.segmentRows.innerHTML = rows.join('');
+  }
+
+  return {
+    /** Eingabefelder auf den Modellzustand setzen (Init, Reset, Restore). */
+    syncInputs(params, title) {
+      if (document.activeElement !== el.title) el.title.value = title ?? '';
+      numericFields.forEach(({ input, key }) => {
+        if (document.activeElement === input) return;
+        input.value = String(params[key]);
+      });
+    },
+
+    render(sample) {
+      const state = sample.running ? 'running' : sample.elapsedMs > 0 ? 'paused' : 'idle';
+      el.status.dataset.state = state;
+      el.status.textContent = STATUS_TEXT[state];
+
+      el.cost.textContent = formatCurrency(sample.cost);
+      el.clock.textContent = formatDuration(sample.elapsedMs);
+      el.ratePerHour.textContent = `${formatCurrency(sample.ratePerHour)}/h`;
+      el.ratePerMinute.textContent = formatCurrency(sample.ratePerMinute);
+      el.costPerParticipant.textContent = formatCurrency(sample.costPerParticipant);
+      el.personHours.textContent = formatDecimal(sample.personHours);
+
+      el.btnToggle.textContent = sample.running ? 'Pause' : sample.elapsedMs > 0 ? 'Weiter' : 'Start';
+      el.btnToggle.classList.toggle('btn--running', sample.running);
+      el.btnReset.disabled = !sample.running && sample.elapsedMs === 0;
+      el.btnCopy.disabled = sample.elapsedMs === 0;
+      el.btnCsv.disabled = sample.elapsedMs === 0;
+
+      document.title = sample.running
+        ? `${formatCurrency(sample.cost)} - Meetingkosten`
+        : 'Meetingkosten';
+
+      renderSegments(sample);
+    },
+
+    /** Kurze Rückmeldung zu Export-Aktionen. */
+    showHint(message) {
+      el.exportHint.textContent = message;
+      if (hintTimer) clearTimeout(hintTimer);
+      hintTimer = setTimeout(() => {
+        el.exportHint.textContent = '';
+      }, 4000);
+    },
+
+    /** Erzwingt das Neuzeichnen der Segmenttabelle (z. B. nach Reset). */
+    invalidateSegments() {
+      renderedSegments = -1;
+    }
+  };
+}
+
+  /* ----- js/app.js ----- */
+/**
+ * Bootstrap: verdrahtet Kostenmodell (costEngine), Takt (ticker),
+ * Persistenz (storage), Oberfläche (ui) und Export (exporter).
+ */
+
+const engine = createCostEngine(CONFIG.defaults);
+let title = CONFIG.defaults.title;
+
+// --- Persistenz -------------------------------------------------------------
+const snapshot = loadState();
+let restoredRunning = false;
+if (snapshot) {
+  title = typeof snapshot.title === 'string' ? snapshot.title : title;
+  engine.restore(snapshot.engine);
+  restoredRunning = engine.isRunning();
+}
+
+function persist() {
+  saveState({ title, engine: engine.toJSON() });
+}
+
+// --- UI ---------------------------------------------------------------------
+const ui = createUi({
+  onToggle: () => {
+    engine.toggle();
+    syncTicker();
+    update();
+    persist();
+  },
+
+  onReset: () => {
+    const sample = engine.sample();
+    if (sample.elapsedMs > 0 && !window.confirm('Messung zurücksetzen? Der bisherige Verlauf wird verworfen.')) {
+      return;
+    }
+    engine.reset();
+    ui.invalidateSegments();
+    syncTicker();
+    update();
+    // Zeit und Verlauf werden verworfen, die Parameter bleiben erhalten.
+    persist();
+    ui.showHint('Messung zurückgesetzt.');
+  },
+
+  onParamsChange: (patch) => {
+    engine.setParams(patch);
+    update();
+    persist();
+  },
+
+  onTitleChange: (value) => {
+    title = value;
+    persist();
+  },
+
+  onCopy: async () => {
+    const text = buildSummaryText(engine.sample(), title);
+    const ok = await copyToClipboard(text);
+    ui.showHint(ok ? 'Zusammenfassung in der Zwischenablage.' : 'Kopieren nicht möglich - bitte Verlauf als CSV nutzen.');
+  },
+
+  onCsv: () => {
+    const sample = engine.sample();
+    downloadFile(buildFileName(title, 'csv'), buildSegmentsCsv(sample, title), 'text/csv;charset=utf-8');
+    ui.showHint('CSV-Datei wurde erzeugt.');
+  }
+});
+
+// --- Takt -------------------------------------------------------------------
+const ticker = createTicker(() => update(), CONFIG.tickMs);
+
+function syncTicker() {
+  if (engine.isRunning()) {
+    ticker.start();
+  } else {
+    ticker.stop();
+  }
+}
+
+function update() {
+  const sample = engine.sample();
+  ui.syncInputs(sample.params, title);
+  ui.render(sample);
+}
+
+// Beim Wechsel zurück in den Tab sofort aktualisieren: Hintergrund-Tabs werden
+// von Browsern gedrosselt, die Berechnung selbst bleibt aber zeitstempelbasiert.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) update();
+});
+
+// Zustand regelmäßig und beim Verlassen der Seite sichern.
+setInterval(() => {
+  if (engine.isRunning()) persist();
+}, CONFIG.autosaveMs);
+window.addEventListener('pagehide', persist);
+
+syncTicker();
+update();
+
+// Installation als App mit eigenem Icon und Offline-Betrieb (beides optional).
+registerServiceWorker();
+setupInstallPrompt(document.getElementById('btnInstall'), (message) => ui.showHint(message));
+
+if (restoredRunning) {
+  ui.showHint('Laufende Messung wurde fortgesetzt.');
+}
+})();
+  </script>
+  <noscript>
+    <p class="hint" style="padding: 1rem">Diese App benötigt JavaScript.</p>
+  </noscript>
+</body>
+</html>

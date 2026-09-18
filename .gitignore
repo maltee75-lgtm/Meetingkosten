@@ -1,0 +1,4 @@
+node_modules
+dist/*.zip
+dist/*.map
+.DS_Store

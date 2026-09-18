@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Meetingkosten">
+  <title>Meetingkosten</title>
+  <!-- Reduzierte Variante fuer kleine Groessen (Favicon 16-48 px): nur das Waehrungszeichen,
+       da Zifferblatt und Krone bei dieser Kantenlaenge nicht mehr auflösen. -->
+  <rect width="512" height="512" rx="96" fill="#0f766e"/>
+  <text x="258" y="272" text-anchor="middle" dominant-baseline="central"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="400" font-weight="700"
+        fill="#ffffff">&#8364;</text>
+</svg>

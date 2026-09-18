@@ -78,6 +78,11 @@ h1, h2 { line-height: 1.2; margin: 0; }
   padding: 1.5rem 1rem 1rem;
   max-width: 1080px;
   margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .app-header__brand {
@@ -331,6 +336,11 @@ summary:focus-visible {
   line-height: 1;
 }
 
+.btn--small {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+}
+
 .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.15rem; }
 
 .chip {
@@ -393,3 +403,26 @@ summary:focus-visible {
 }
 
 .app-footer p { margin: 0; }
+
+.install-help {
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-panel);
+}
+
+.install-help summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.install-help ul {
+  margin: 0.6rem 0 0.4rem;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.install-help strong { color: var(--text); }

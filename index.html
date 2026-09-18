@@ -6,7 +6,15 @@
   <title>Meetingkosten</title>
   <meta name="description" content="Live-Kostenzähler für Meetings: Teilnehmer und Stundensatz eingeben, Start drücken - die Kosten laufen im Sekundentakt mit." />
   <meta name="color-scheme" content="light dark" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f766e'/%3E%3Ctext x='50' y='70' font-size='62' font-family='sans-serif' font-weight='700' text-anchor='middle' fill='white'%3E%E2%82%AC%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="icons/favicon.ico" sizes="32x32" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0f766e" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#11161b" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Meetingkosten" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -18,6 +26,7 @@
         <p class="app-header__tagline">Live-Kostenzähler für Besprechungen &ndash; Stoppuhr mit Preisschild</p>
       </div>
     </div>
+    <button type="button" id="btnInstall" class="btn btn--small" hidden>App installieren</button>
   </header>
 
   <main class="layout">
@@ -129,6 +138,15 @@
   </main>
 
   <footer class="app-footer">
+    <details class="install-help">
+      <summary>Als App mit eigenem Icon installieren</summary>
+      <ul>
+        <li><strong>Windows / macOS (Chrome, Edge):</strong> Schaltfläche „App installieren" oben, oder im Adressfeld das Installationssymbol. Die App erhält ein eigenes Fenster und ein Icon im Startmenü bzw. Dock.</li>
+        <li><strong>Android (Chrome):</strong> Menü <span aria-hidden="true">⋮</span> &rarr; „App installieren" bzw. „Zum Startbildschirm hinzufügen".</li>
+        <li><strong>iPhone / iPad (Safari):</strong> Teilen-Symbol &rarr; „Zum Home-Bildschirm".</li>
+      </ul>
+      <p>Nach der Installation läuft die App auch ohne Netzverbindung.</p>
+    </details>
     <p>Berechnung: Teilnehmer &times; Stundensatz &times; Overhead-Faktor &divide; 3600 = Kosten pro Sekunde. Alle Daten bleiben im Browser.</p>
   </footer>
 

@@ -7,6 +7,7 @@ import { createCostEngine } from './costEngine.js';
 import { createTicker } from './ticker.js';
 import { createUi } from './ui.js';
 import { loadState, saveState } from './storage.js';
+import { registerServiceWorker, setupInstallPrompt } from './pwa.js';
 import {
   buildSummaryText,
   buildSegmentsCsv,
@@ -109,6 +110,10 @@ window.addEventListener('pagehide', persist);
 
 syncTicker();
 update();
+
+// Installation als App mit eigenem Icon und Offline-Betrieb (beides optional).
+registerServiceWorker();
+setupInstallPrompt(document.getElementById('btnInstall'), (message) => ui.showHint(message));
 
 if (restoredRunning) {
   ui.showHint('Laufende Messung wurde fortgesetzt.');

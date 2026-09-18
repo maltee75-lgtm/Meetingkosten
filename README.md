@@ -81,13 +81,15 @@ Erscheint der Menüpunkt nicht, liegt es fast immer an einer dieser Ursachen:
 
 ### GitHub Pages aktivieren (einmalig)
 
-Empfohlen über den mitgelieferten Workflow:
-
-1. `Actions → Pages → Run workflow` (oder einen Push auf `main`). Der Workflow führt die Tests aus,
-   erzeugt die Einzeldatei neu, stellt das Auslieferungsverzeichnis zusammen und aktiviert Pages selbst
-   (`actions/configure-pages` mit `enablement: true`).
-2. Die Adresse steht danach in der Workflow-Zusammenfassung, üblicherweise
-   `https://<benutzer>.github.io/Meetingkosten/`.
+1. **Pages aktivieren** (einmalig, nur über die Oberfläche möglich):
+   `Settings → Pages → Build and deployment → Source: **GitHub Actions**`.
+   Das kann kein Workflow übernehmen – das Workflow-Token darf keine Pages-Site anlegen
+   (`Create Pages site failed. Error: Resource not accessible by integration`).
+2. **Workflow starten:** `Actions → Pages → Run workflow` (oder einfach ein Push auf `main`).
+   Der Workflow führt die Tests aus, erzeugt die Einzeldatei neu, stellt das Auslieferungsverzeichnis
+   zusammen und veröffentlicht es.
+3. Die Adresse steht danach in der Workflow-Zusammenfassung, üblicherweise
+   `https://<benutzer>.github.io/Meetingkosten/`. Der erste Aufruf kann eine Minute brauchen.
 
 Alternativ ohne Workflow: `Settings → Pages → Source: Deploy from a branch`, Branch und Ordner `/ (root)`
 wählen. **Hinweis:** Bei einem öffentlichen Repository ist die veröffentlichte Seite öffentlich erreichbar;
@@ -258,4 +260,17 @@ Die Modulgrenzen sind so gewählt, dass folgende Ausbaustufen ohne Umbau des Ker
 
 ## 9. Lizenz
 
-MIT
+Copyright (c) 2026 Malte (GitHub: maltee75-lgtm). **Alle Rechte vorbehalten.**
+
+Der Quellcode ist öffentlich einsehbar, steht aber **nicht** unter einer Open-Source-Lizenz.
+Vervielfältigung, Bearbeitung, Weitergabe und kommerzielle Nutzung bedürfen der vorherigen
+schriftlichen Zustimmung des Rechteinhabers. Einzelheiten in der Datei [LICENSE](LICENSE).
+
+Zwei Hinweise zur Einordnung:
+
+- Da das Repository öffentlich ist, räumen die Nutzungsbedingungen von GitHub anderen
+  GitHub-Nutzern das Recht ein, es anzusehen und innerhalb von GitHub zu forken
+  (GitHub Terms of Service, Abschnitt D). Das lässt sich nur durch ein privates Repository
+  verhindern, nicht durch den Lizenztext.
+- Die Nutzung der veröffentlichten Web-Anwendung bleibt ausdrücklich erlaubt; die eingegebenen
+  Werte verlassen den Browser des jeweiligen Nutzers nicht.

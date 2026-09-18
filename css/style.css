@@ -404,6 +404,8 @@ summary:focus-visible {
 
 .app-footer p { margin: 0; }
 
+.app-footer__legal { margin-top: 0.35rem; opacity: 0.85; }
+
 .install-help {
   margin-bottom: 0.75rem;
   border: 1px solid var(--border);

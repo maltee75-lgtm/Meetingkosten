@@ -3,8 +3,12 @@
 #
 # Der Workflow läuft nur manuell ("Run workflow") oder bei einem Push auf main -
 # ein Push auf einen Entwicklungszweig veröffentlicht also nichts.
-# configure-pages aktiviert GitHub Pages beim ersten Lauf selbst; bei einem
-# privaten Repository benötigt das einen Plan mit Pages-Unterstützung.
+#
+# VORAUSSETZUNG, einmalig im Repository zu setzen:
+#   Settings -> Pages -> Build and deployment -> Source: GitHub Actions
+# Der Workflow kann das nicht selbst erledigen: das Workflow-Token darf keine
+# Pages-Site anlegen ("Create Pages site failed. Error: Resource not accessible
+# by integration"). Erst wenn Pages aktiviert ist, läuft dieser Workflow durch.
 name: Pages
 
 on:
@@ -50,8 +54,6 @@ jobs:
 
       - name: Pages konfigurieren
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Artefakt hochladen
         uses: actions/upload-pages-artifact@v3

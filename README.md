@@ -260,4 +260,17 @@ Die Modulgrenzen sind so gewählt, dass folgende Ausbaustufen ohne Umbau des Ker
 
 ## 9. Lizenz
 
-MIT
+Copyright (c) 2026 Malte (GitHub: maltee75-lgtm). **Alle Rechte vorbehalten.**
+
+Der Quellcode ist öffentlich einsehbar, steht aber **nicht** unter einer Open-Source-Lizenz.
+Vervielfältigung, Bearbeitung, Weitergabe und kommerzielle Nutzung bedürfen der vorherigen
+schriftlichen Zustimmung des Rechteinhabers. Einzelheiten in der Datei [LICENSE](LICENSE).
+
+Zwei Hinweise zur Einordnung:
+
+- Da das Repository öffentlich ist, räumen die Nutzungsbedingungen von GitHub anderen
+  GitHub-Nutzern das Recht ein, es anzusehen und innerhalb von GitHub zu forken
+  (GitHub Terms of Service, Abschnitt D). Das lässt sich nur durch ein privates Repository
+  verhindern, nicht durch den Lizenztext.
+- Die Nutzung der veröffentlichten Web-Anwendung bleibt ausdrücklich erlaubt; die eingegebenen
+  Werte verlassen den Browser des jeweiligen Nutzers nicht.

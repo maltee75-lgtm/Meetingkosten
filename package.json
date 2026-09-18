@@ -1,0 +1,13 @@
+{
+  "name": "meetingkosten",
+  "version": "1.0.0",
+  "description": "Live-Kostenzähler für Meetings - Teilnehmer und Stundensatz eingeben, Start drücken, Kosten laufen im Sekundentakt mit.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node --test tests/*.test.js"
+  },
+  "keywords": ["meeting", "kosten", "stoppuhr", "rechner"],
+  "license": "MIT"
+}

@@ -1,0 +1,63 @@
+# Veröffentlicht die App über GitHub Pages, damit sie auf Android und iOS
+# installierbar ist (Installation setzt https voraus).
+#
+# Der Workflow läuft nur manuell ("Run workflow") oder bei einem Push auf main -
+# ein Push auf einen Entwicklungszweig veröffentlicht also nichts.
+# configure-pages aktiviert GitHub Pages beim ersten Lauf selbst; bei einem
+# privaten Repository benötigt das einen Plan mit Pages-Unterstützung.
+name: Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Quellen auschecken
+        uses: actions/checkout@v4
+
+      - name: Node einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Tests des Kostenmodells
+        run: npm test
+
+      - name: Einzeldatei-Fassung neu erzeugen
+        run: npm run build
+
+      - name: Auslieferungsverzeichnis zusammenstellen
+        run: |
+          mkdir -p _site
+          cp -r index.html manifest.webmanifest sw.js css js icons screenshots dist _site/
+          ls -R _site | head -40
+
+      - name: Pages konfigurieren
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Artefakt hochladen
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Veröffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4

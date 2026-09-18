@@ -15,6 +15,7 @@ Alle Daten bleiben im Browser; es findet keine Datenübertragung an Server statt
 | Lokaler Server (empfohlen) | `npm start` oder `python3 -m http.server 8080`, dann <http://localhost:8080> | ES-Module benötigen `http(s)://`, ein Doppelklick auf `index.html` (`file://`) wird vom Browser blockiert |
 | GitHub Pages / Intranet | Verzeichnisinhalt statisch ausliefern | Kein Backend, kein Build erforderlich |
 | Einzeldatei | `dist/meetingkosten.html` herunterladen und per Doppelklick öffnen | Alles inline (kein Server, kein Netz); erzeugt mit `npm run build` |
+| Auslieferungspaket | `npm run package` → `dist/meetingkosten-pwa.zip` | Zum Hochladen bei einem Hoster oder Entpacken auf einem Webserver |
 | Als App mit Icon | siehe Abschnitt 3 | Installation über das Web-App-Manifest, eigenes Icon und Offline-Betrieb |
 | Tests | `npm test` | Node-eigener Test-Runner, keine Installation nötig |
 
@@ -46,17 +47,51 @@ Einzeldatei-Variante (siehe unten).
 | Plattform | Weg zum Icon |
 |---|---|
 | Windows / macOS (Chrome, Edge) | Schaltfläche **„App installieren"** oben rechts in der App, oder das Installationssymbol im Adressfeld. Ergebnis: Icon im Startmenü bzw. Dock, eigenes Fenster |
-| Android (Chrome) | Menü ⋮ → „App installieren" / „Zum Startbildschirm hinzufügen" |
+| Android (Chrome) | Menü ⋮ → „App installieren" (siehe Schritt-für-Schritt unten) |
 | iPhone / iPad (Safari) | Teilen-Symbol → „Zum Home-Bildschirm" |
 | Firefox (Desktop) | Kein PWA-Install; Lesezeichen in der Symbolleiste oder Einzeldatei-Variante verwenden |
 
+### Android: Schritt für Schritt
+
+1. Die App über eine `https://`-Adresse aufrufen (Hosting-Optionen siehe unten).
+2. In Chrome das Menü **⋮** öffnen.
+3. **„App installieren"** wählen – erscheint der Eintrag stattdessen als
+   „Zum Startbildschirm hinzufügen", ist es dieselbe Funktion in älteren Chrome-Versionen.
+4. Der Installationsdialog zeigt Name, Beschreibung und zwei Screenshots aus dem Manifest.
+   Bestätigen – das Icon liegt anschließend im App-Drawer und auf dem Startbildschirm.
+5. Beim Start aus dem Icon läuft die App ohne Browser-Adressleiste und funktioniert offline.
+
+Erscheint der Menüpunkt nicht, liegt es fast immer an einer dieser Ursachen:
+
+| Ursache | Abhilfe |
+|---|---|
+| Aufruf über `http://` (z. B. `http://192.168.x.x:8080` im WLAN) | Chrome installiert nur im *secure context*: `https://` oder `localhost`. Ein lokaler Server im Heimnetz genügt also **nicht** |
+| Aufruf über `file://` oder aus einem anderen Browser (z. B. Samsung Internet in älterer Version) | Chrome verwenden und über https ausliefern |
+| Seite in einem eingebetteten Rahmen geöffnet (In-App-Browser von Mail, Chat, Teams) | Link „In Chrome öffnen" nutzen |
+| App bereits installiert | Der Menüpunkt heißt dann „App öffnen" |
+
+### Hosting-Optionen (Voraussetzung für die Installation)
+
+| Option | Aufwand | Bemerkung |
+|---|---|---|
+| **GitHub Pages** | einmalig einrichten, danach automatisch bei jedem Push auf `main` | Workflow liegt bereit: `.github/workflows/pages.yml`. Bei einem **privaten** Repository benötigt Pages einen Plan mit Pages-Unterstützung; im kostenlosen Plan muss das Repository öffentlich sein |
+| **Hoster mit Drag-and-drop** (Netlify Drop, Cloudflare Pages, Vercel) | `npm run package` und `dist/meetingkosten-pwa.zip` hochladen | Schnellster Weg zu einer https-Adresse, Repository bleibt privat; Konto beim jeweiligen Anbieter nötig |
+| **Eigener Webserver / Intranet** | Inhalt des ZIP entpacken | Für den Firmeneinsatz die sauberste Variante, wenn ein https-Zertifikat vorhanden ist |
+| **Ohne Hosting** | – | Keine Installation möglich; stattdessen Einzeldatei-Variante am Rechner nutzen (siehe unten) |
+
 ### GitHub Pages aktivieren (einmalig)
 
-`Settings → Pages → Build and deployment → Source: Deploy from a branch`, Branch wählen (`main` oder
-`claude/meeting-cost-calculator-un91il`), Ordner `/ (root)`, speichern. Die App ist dann unter
-`https://<benutzer>.github.io/Meetingkosten/` erreichbar und installierbar.
-**Hinweis:** Bei einem öffentlichen Repository ist die Seite öffentlich erreichbar; für ein privates
-Repository benötigt GitHub Pages einen bezahlten Plan.
+Empfohlen über den mitgelieferten Workflow:
+
+1. `Actions → Pages → Run workflow` (oder einen Push auf `main`). Der Workflow führt die Tests aus,
+   erzeugt die Einzeldatei neu, stellt das Auslieferungsverzeichnis zusammen und aktiviert Pages selbst
+   (`actions/configure-pages` mit `enablement: true`).
+2. Die Adresse steht danach in der Workflow-Zusammenfassung, üblicherweise
+   `https://<benutzer>.github.io/Meetingkosten/`.
+
+Alternativ ohne Workflow: `Settings → Pages → Source: Deploy from a branch`, Branch und Ordner `/ (root)`
+wählen. **Hinweis:** Bei einem öffentlichen Repository ist die veröffentlichte Seite öffentlich erreichbar;
+für ein privates Repository benötigt GitHub Pages einen bezahlten Plan.
 
 ### Ohne Hosting: Einzeldatei plus Verknüpfung
 
@@ -151,6 +186,9 @@ ist DOM-frei und damit ohne Browser testbar.
 | `manifest.webmanifest` | Web-App-Manifest: Name, Farben, Icons, Anzeigemodus `standalone` |
 | `tools/build-standalone.mjs` | Erzeugt `dist/meetingkosten.html` (Einzeldatei, ohne Abhängigkeiten) |
 | `tools/build-icons.mjs` | Erzeugt PNG-Größen und `favicon.ico` aus den SVG-Mastern (benötigt Playwright) |
+| `tools/build-screenshots.mjs` | Erzeugt die Manifest-Screenshots für den Android-Installationsdialog |
+| `tools/build-package.sh` | Packt die auslieferbare App als `dist/meetingkosten-pwa.zip` |
+| `.github/workflows/pages.yml` | Veröffentlichung über GitHub Pages (manuell oder bei Push auf `main`) |
 | `tests/costEngine.test.js` | Tests des Kostenmodells (deterministisch, ohne Browser) |
 
 ### Entwurfsentscheidungen
@@ -197,6 +235,11 @@ Für Installation und Offline-Betrieb geprüft: Manifest, Icons und `sw.js` werd
 ausgeliefert, der Service Worker erreicht den Zustand *activated*, ein Reload im Offline-Modus lädt die App
 vollständig aus dem Cache und die Messung läuft dort weiter. Die Einzeldatei `dist/meetingkosten.html` wurde
 über `file://` geprüft (Zählen, Segmentbildung, `localStorage`, CSV-Download, Fortsetzen nach Reload).
+
+Für Android wurde die Installierbarkeit mit Chromes eigener Manifest-Auswertung geprüft
+(`Page.getAppManifest`: keine Fehler, Icons 192/512 inklusive `maskable`, Screenshots `form_factor: narrow`,
+Anzeigemodus `standalone`) sowie die Bedienung in der Geräte-Emulation eines Pixel 7 mit Touch-Eingabe
+(412 px Breite, kein Horizontalscroll, Start per Tippen).
 
 ## 8. Erweiterungsmöglichkeiten
 
